@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Secure Banking System</title>
+<style>
+  :root {
+    --primary-color: #1e3a8a;
+    --secondary-color: #2563eb;
+    --accent-color: #facc15;
+    --bg-color: #f9fafb;
+    --text-color: #111827;
+    --error-color: #dc2626;
+    --success-color: #16a34a;
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: var(--font-family);
+    background-color: var(--bg-color);
+    color: var(--text-color);
+  }
+
+  header {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  header h1 {
+    margin: 0;
+    font-weight: 700;
+    font-size: 1.5rem;
+  }
+
+  nav {
+    display: flex;
+    gap: 1rem;
+  }
+
+  nav button {
+    background: none;
+    border: 2px solid white;
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  nav button:hover {
+    background-color: white;
+    color: var(--primary-color);
+  }
+
+  main {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+  }
+
+  h2 {
+    text-align: center;
+    color: var(--secondary-color);
+    margin-top: 0;
+  }
+
+  form {
+    max-width: 500px;
+    margin: 1rem auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  label {
+    font-weight: 600;
+  }
+
+  input, select {
+    padding: 0.6rem 0.8rem;
+    font-size: 1rem;
+    border: 1.5px solid #d1d5db;
+    border-radius: 6px;
+    transition: border-color 0.3s ease;
+  }
+
+  input:focus, select:focus {
+    outline: none;
+    border-color: var(--secondary-color);
+  }
+
+  button[type="submit"], .btn {
+    background-color: var(--secondary-color);
+    color: white;
+    padding: 0.8rem 1.2rem;
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    font-weight: 700;
+    transition: background-color 0.3s ease;
+  }
+
+  button[type="submit"]:hover, .btn:hover {
+    background-color: var(--accent-color);
+    color: var(--primary-color);
+  }
+
+  .message {
+    text-align: center;
+    margin-top: 1rem;
+    font-weight: 600;
+  }
+
+  .error {
+    color: var(--error-color);
+  }
+
+  .success {
+    color: var(--success-color);
+  }
+
+  .hidden {
+    display: none;
+  }
+
+  .dashboard, .admin-panel {
+    padding: 1rem;
+  }
+
+  .dashboard button {
+    margin: 0.5rem 0;
+    width: 100%;
+  }
+
+  .flex-row {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .transfer-logs, .accounts-list {
+    max-height: 250px;
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    padding: 0.8rem;
+    border-radius: 8px;
+    background-color: #f3f4f6;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  table thead {
+    background-color: var(--secondary-color);
+    color: white;
+  }
+
+  table th, table td {
+    padding: 0.5rem;
+    border: 1px solid #ddd;
+    text-align: center;
+  }
+
+  footer {
+    margin-top: 3rem;
+    text-align: center;
+    padding: 1rem;
+    color: #555;
+  }
+
+  @media (max-width: 600px) {
+    nav {
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    main {
+      margin: 1rem;
+    }
+
+    .flex-row {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Secure Banking System</h1>
+  <nav id="nav-bar">
+    <button id="btn-show-login">Login</button>
+    <button id="btn-show-register">Create Account</button>
+    <button id="btn-show-customer-support">Support</button>
+    <button id="btn-show-admin-login">Admin Login</button>
+  </nav>
+</header>
+
+<main>
+  <!-- Login Form -->
+  <section id="login-section" class="active-section">
+    <h2>Login to Your Account</h2>
+    <form id="login-form" autocomplete="off">
+      <label for="login-account-number">Account Number</label>
+      <input type="text" id="login-account-number" required placeholder="BANKXXXX" />
+      <label for="login-password">Password</label>
+      <input type="password" id="login-password" required placeholder="Your password" />
+      <button type="submit">Login</button>
+      <p class="message error hidden" id="login-error"></p>
+    </form>
+  </section>
+
+  <!-- Register Form -->
+  <section id="register-section" class="hidden">
+    <h2>Create a New Account</h2>
+    <form id="register-form" autocomplete="off">
+      <label for="reg-name">Full Name</label>
+      <input type="text" id="reg-name" required placeholder="John Doe" />
+      <label for="reg-dob">Date of Birth</label>
+      <input type="date" id="reg-dob" required />
+      <label for="reg-address">Home Address</label>
+      <input type="text" id="reg-address" required placeholder="123 Main St" />
+      <label for="reg-city">City</label>
+      <select id="reg-city" required>
+        <option value="" disabled selected>Select your city</option>
+        <option value="Mumbai">Mumbai</option>
+        <option value="Delhi">Delhi</option>
+        <option value="Bangalore">Bangalore</option>
+        <option value="Chennai">Chennai</option>
+        <option value="Hyderabad">Hyderabad</option>
+        <option value="Pune">Pune</option>
+        <option value="Ahmedabad">Ahmedabad</option>
+      </select>
+      <label for="reg-password">Set Password</label>
+      <input type="password" id="reg-password" required placeholder="Create a strong password" />
+      <button type="submit">Create Account</button>
+      <p class="message success hidden" id="register-success"></p>
+      <p class="message error hidden" id="register-error"></p>
+    </form>
+  </section>
+
+  <!-- Customer Support -->
+  <section id="support-section" class="hidden">
+    <h2>Customer Support</h2>
+    <p>For assistance, please call: <strong>9769268125</strong></p>
+    <button class="btn" id="back-from-support">Back</button>
+  </section>
+
+  <!-- Admin Login -->
+  <section id="admin-login-section" class="hidden">
+    <h2>Administrator Login</h2>
+    <form id="admin-login-form" autocomplete="off">
+      <label for="admin-password">Admin Password</label>
+      <input type="password" id="admin-password" required placeholder="Admin password" />
+      <button type="submit">Login</button>
+      <p class="message error hidden" id="admin-login-error"></p>
+    </form>
+  </section>
+
+  <!-- User Dashboard -->
+  <section id="user-dashboard" class="hidden">
+    <h2>Welcome, <span id="user-name-display">User</span></h2>
+    <p>Account Number: <span id="user-account-number"></span></p>
+    <p>Balance: ₹<span id="user-balance">0</span></p>
+    <p>Outstanding Loan: ₹<span id="user-loan">0</span></p>
+    <p>Available Loan Capacity: ₹<span id="user-loan-capacity">0</span></p>
+
+    <div class="dashboard">
+      <button class="btn" id="btn-deposit">Deposit Money</button>
+      <button class="btn" id="btn-withdraw" disabled>Withdraw Money (Coming Soon)</button>
+      <button class="btn" id="btn-request-loan">Request Loan</button>
+      <button class="btn" id="btn-transfer">Transfer Money</button>
+      <button class="btn" id="btn-view-history">Transaction & Loan History</button>
+      <button class="btn" id="btn-logout">Logout</button>
+    </div>
+  </section>
+
+  <!-- Deposit Modal -->
+  <section id="deposit-section" class="hidden">
+    <h2>Deposit Money</h2>
+    <form id="deposit-form" autocomplete="off">
+      <label for="deposit-amount">Amount to Deposit (₹)</label>
+      <input type="number" id="deposit-amount" min="1" required />
+      <button type="submit">Deposit</button>
+      <button type="button" id="deposit-cancel">Cancel</button>
+      <p class="message success hidden" id="deposit-success"></p>
+      <p class="message error hidden" id="deposit-error"></p>
+    </form>
+  </section>
+
+  <!-- Loan Request -->
+  <section id="loan-section" class="hidden">
+    <h2>Request Loan</h2>
+    <form id="loan-form" autocomplete="off">
+      <p>Your current balance: ₹<span id="loan-balance-display">0</span></p>
+      <p>Maximum loan available: ₹<span id="loan-max-display">0</span></p>
+      <label for="loan-amount">Loan Amount (₹)</label>
+      <input type="number" id="loan-amount" min="1" required />
+      <button type="submit">Request Loan</button>
+      <button type="button" id="loan-cancel">Cancel</button>
+      <p class="message success hidden" id="loan-success"></p>
+      <p class="message error hidden" id="loan-error"></p>
+    </form>
+  </section>
+
+  <!-- Transfer Money -->
+  <section id="transfer-section" class="hidden">
+    <h2>Transfer Money</h2>
+    <form id="transfer-form" autocomplete="off">
+      <label for="transfer-recipient">Recipient Account Number</label>
+      <input type="text" id="transfer-recipient" required placeholder="BANKXXXX" />
+      <label for="transfer-amount">Amount to Transfer (₹)</label>
+      <input type="number" id="transfer-amount" min="1" required />
+      <button type="submit">Transfer</button>
+      <button type="button" id="transfer-cancel">Cancel</button>
+      <p class="message success hidden" id="transfer-success"></p>
+      <p class="message error hidden" id="transfer-error"></p>
+    </form>
+  </section>
+
+  <!-- Transaction History -->
+  <section id="history-section" class="hidden">
+    <h2>Transaction & Loan History</h2>
+    <div class="transfer-logs" id="history-logs">
+      <!-- Filled dynamically -->
+      <p>No transactions yet.</p>
+    </div>
+    <button class="btn" id="history-back">Back to Dashboard</button>
+  </section>
+
+  <!-- Admin Panel -->
+  <section id="admin-panel" class="hidden">
+    <h2>Administrator Dashboard</h2>
+    <p>Welcome, Admin.</p>
+    <div class="admin-panel">
+      <h3>All Accounts</h3>
+      <div class="accounts-list" id="admin-accounts-list">
+        <p>No accounts loaded.</p>
+      </div>
+      <button class="btn" id="admin-logout">Logout</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  &copy; 2025 Secure Banking System. All rights reserved.
+</footer>
+
+<script>
+  // Basic page state management
+  const sections = {
+    login: document.getElementById('login-section'),
+    register: document.getElementById('register-section'),
+    support: document.getElementById('support-section'),
+    adminLogin: document.getElementById('admin-login-section'),
+    userDashboard: document.getElementById('user-dashboard'),
+    deposit: document.getElementById('deposit-section'),
+    loan: document.getElementById('loan-section'),
+    transfer: document.getElementById('transfer-section'),
+    history: document.getElementById('history-section'),
+    adminPanel: document.getElementById('admin-panel'),
+  };
+
+  function hideAllSections() {
+    Object.values(sections).forEach(s => s.classList.add('hidden'));
+  }
+
+  function showSection(sectionName) {
+    hideAllSections();
+    sections[sectionName].classList.remove('hidden');
+  }
+
+  // Navigation buttons
+  document.getElementById('btn-show-login').addEventListener('click', () => {
+    showSection('login');
+  });
+
+  document.getElementById('btn-show-register').addEventListener('click', () => {
+    showSection('register');
+  });
+
+  document.getElementById('btn-show-customer-support').addEventListener('click', () => {
+    showSection('support');
+  });
+
+  document.getElementById('btn-show-admin-login').addEventListener('click', () => {
+    showSection('adminLogin');
+  });
+
+  document.getElementById('back-from-support').addEventListener('click', () => {
+    showSection('login');
+  });
+
+  // Dummy data storage
+  const users = {}; // accountNumber -> {name, dob, address, city, passwordHash, balance, loan, transactions: []}
+  const adminPassword = 'admin123'; // simple static admin password, for demo only
+
+  // Utilities
+  function hashPassword(pwd) {
+    // Very simple hash imitation for demo
+    let hash = 0;
+    for (let i = 0; i < pwd.length; i++) {
+      hash = (hash << 5) - hash + pwd.charCodeAt(i);
+      hash |= 0; // convert to 32bit int
+    }
+    return hash.toString();
+  }
+
+  function generateAccountNumber() {
+    // BANK + 6 digit random number
+    return 'BANK' + Math.floor(100000 + Math.random() * 900000);
+  }
+
+  // Registration
+  const registerForm = document.getElementById('register-form');
+  registerForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const name = document.getElementById('reg-name').value.trim();
+    const dob = document.getElementById('reg-dob').value;
+    const address = document.getElementById('reg-address').value.trim();
+    const city = document.getElementById('reg-city').value;
+    const pwd = document.getElementById('reg-password').value;
+
+    const registerSuccess = document.getElementById('register-success');
+    const registerError = document.getElementById('register-error');
+    registerSuccess.classList.add('hidden');
+    registerError.classList.add('hidden');
+
+    if (pwd.length < 6) {
+      registerError.textContent = 'Password must be at least 6 characters.';
+      registerError.classList.remove('hidden');
+      return;
+    }
+
+    // Create new account
+    let accNum;
+    do {
+      accNum = generateAccountNumber();
+    } while (accNum in users);
+
+    users[accNum] = {
+      name,
+      dob,
+      address,
+      city,
+      passwordHash: hashPassword(pwd),
+      balance: 0,
+      loan: 0,
+      transactions: [],
+    };
+
+    registerSuccess.textContent = `Account created successfully! Your account number: ${accNum}`;
+    registerSuccess.classList.remove('hidden');
+    registerForm.reset();
+  });
+
+  // Login
+  const loginForm = document.getElementById('login-form');
+  loginForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const accNum = document.getElementById('login-account-number').value.trim();
+    const pwd = document.getElementById('login-password').value;
+    const loginError = document.getElementById('login-error');
+    loginError.classList.add('hidden');
+
+    if (!(accNum in users)) {
+      loginError.textContent = 'Account number not found.';
+      loginError.classList.remove('hidden');
+      return;
+    }
+
+    if (users[accNum].passwordHash !== hashPassword(pwd)) {
+      loginError.textContent = 'Incorrect password.';
+      loginError.classList.remove('hidden');
+      return;
+    }
+
+    currentUser = accNum;
+    updateDashboard();
+    showSection('userDashboard');
+  });
+
+  // Admin Login
+  const adminLoginForm = document.getElementById('admin-login-form');
+  adminLoginForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const pwd = document.getElementById('admin-password').value;
+    const adminLoginError = document.getElementById('admin-login-error');
+    adminLoginError.classList.add('hidden');
+
+    if (pwd !== adminPassword) {
+      adminLoginError.textContent = 'Incorrect admin password.';
+      adminLoginError.classList.remove('hidden');
+      return;
+    }
+
+    showSection('adminPanel');
+    updateAdminPanel();
+  });
+
+  // Current logged in user
+  let currentUser = null;
+
+  // Update dashboard info
+  function updateDashboard() {
+    if (!currentUser) return;
+    const user = users[currentUser];
+    document.getElementById('user-name-display').textContent = user.name;
+    document.getElementById('user-account-number').textContent = currentUser;
+    document.getElementById('user-balance').textContent = user.balance.toFixed(2);
+    document.getElementById('user-loan').textContent = user.loan.toFixed(2);
+    const loanCap = user.balance * 0.5;
+    document.getElementById('user-loan-capacity').textContent = loanCap.toFixed(2);
+  }
+
+  // Logout button
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    currentUser = null;
+    showSection('login');
+  });
+
+  // Deposit
+  document.getElementById('btn-deposit').addEventListener('click', () => {
+    showSection('deposit');
+    resetDepositForm();
+  });
+
+  function resetDepositForm() {
+    document.getElementById('deposit-form').reset();
+    document.getElementById('deposit-error').classList.add('hidden');
+    document.getElementById('deposit-success').classList.add('hidden');
+  }
+
+  document.getElementById('deposit-cancel').addEventListener('click', () => {
+    showSection('userDashboard');
+  });
+
+  document.getElementById('deposit-form').addEventListener('submit', e => {
+    e.preventDefault();
+    const amt = parseFloat(document.getElementById('deposit-amount').value);
+    const depositError = document.getElementById('deposit-error');
+    const depositSuccess = document.getElementById('deposit-success');
+    depositError.classList.add('hidden');
+    depositSuccess.classList.add('hidden');
+
+    if (isNaN(amt) || amt <= 0) {
+      depositError.textContent = 'Enter a valid positive amount.';
+      depositError.classList.remove('hidden');
+      return;
+    }
+
+    const user = users[currentUser];
+    user.balance += amt;
+    user.transactions.push({ type: 'Deposit', amount: amt, date: new Date() });
+
+    depositSuccess.textContent = `₹${amt.toFixed(2)} deposited successfully.`;
+    depositSuccess.classList.remove('hidden');
+    updateDashboard();
+    depositForm.reset();
+  });
+
+  // Loan request
+  document.getElementById('btn-request-loan').addEventListener('click', () => {
+    showSection('loan');
+    updateLoanSection();
+  });
+
+  function updateLoanSection() {
+    const user = users[currentUser];
+    const maxLoan = user.balance * 0.5;
+    document.getElementById('loan-balance-display').textContent = user.balance.toFixed(2);
+    document.getElementById('loan-max-display').textContent = maxLoan.toFixed(2);
+    document.getElementById('loan-amount').max = maxLoan;
+    document.getElementById('loan-amount').value = '';
+    document.getElementById('loan-error').classList.add('hidden');
+    document.getElementById('loan-success').classList.add('hidden');
+  }
+
+  document.getElementById('loan-cancel').addEventListener('click', () => {
+    showSection('userDashboard');
+  });
+
+  const loanForm = document.getElementById('loan-form');
+  loanForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const amt = parseFloat(document.getElementById('loan-amount').value);
+    const loanError = document.getElementById('loan-error');
+    const loanSuccess = document.getElementById('loan-success');
+    loanError.classList.add('hidden');
+    loanSuccess.classList.add('hidden');
+
+    const user = users[currentUser];
+    const maxLoan = user.balance * 0.5;
+
+    if (isNaN(amt) || amt <= 0 || amt > maxLoan) {
+      loanError.textContent = `Loan amount must be positive and ≤ ₹${maxLoan.toFixed(2)}.`;
+      loanError.classList.remove('hidden');
+      return;
+    }
+
+    user.loan += amt;
+    user.balance += amt;
+    user.transactions.push({ type: 'Loan', amount: amt, date: new Date() });
+
+    loanSuccess.textContent = `Loan of ₹${amt.toFixed(2)} granted successfully.`;
+    loanSuccess.classList.remove('hidden');
+    updateDashboard();
+    loanForm.reset();
+  });
+
+  // Transfer money
+  document.getElementById('btn-transfer').addEventListener('click', () => {
+    showSection('transfer');
+    resetTransferForm();
+  });
+
+  function resetTransferForm() {
+    document.getElementById('transfer-form').reset();
+    document.getElementById('transfer-error').classList.add('hidden');
+    document.getElementById('transfer-success').classList.add('hidden');
+  }
+
+  document.getElementById('transfer-cancel').addEventListener('click', () => {
+    showSection('userDashboard');
+  });
+
+  const transferForm = document.getElementById('transfer-form');
+  transferForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const recipient = document.getElementById('transfer-recipient').value.trim();
+    const amt = parseFloat(document.getElementById('transfer-amount').value);
+    const transferError = document.getElementById('transfer-error');
+    const transferSuccess = document.getElementById('transfer-success');
+    transferError.classList.add('hidden');
+    transferSuccess.classList.add('hidden');
+
+    if (!(recipient in users)) {
+      transferError.textContent = 'Recipient account does not exist.';
+      transferError.classList.remove('hidden');
+      return;
+    }
+
+    if (recipient === currentUser) {
+      transferError.textContent = 'Cannot transfer to your own account.';
+      transferError.classList.remove('hidden');
+      return;
+    }
+
+    const sender = users[currentUser];
+    if (isNaN(amt) || amt <= 0) {
+      transferError.textContent = 'Enter a valid positive amount.';
+      transferError.classList.remove('hidden');
+      return;
+    }
+
+    if (amt > sender.balance) {
+      transferError.textContent = 'Insufficient balance.';
+      transferError.classList.remove('hidden');
+      return;
+    }
+
+    // Transfer
+    sender.balance -= amt;
+    sender.transactions.push({ type: 'Transfer Sent', amount: amt, date: new Date(), to: recipient });
+
+    users[recipient].balance += amt;
+    users[recipient].transactions.push({ type: 'Transfer Received', amount: amt, date: new Date(), from: currentUser });
+
+    transferSuccess.textContent = `₹${amt.toFixed(2)} transferred successfully to ${recipient}.`;
+    transferSuccess.classList.remove('hidden');
+    updateDashboard();
+    transferForm.reset();
+  });
+
+  // Transaction & Loan History
+  document.getElementById('btn-view-history').addEventListener('click', () => {
+    showSection('history');
+    renderHistory();
+  });
+
+  document.getElementById('history-back').addEventListener('click', () => {
+    showSection('userDashboard');
+  });
+
+  function renderHistory() {
+    const historyLogs = document.getElementById('history-logs');
+    historyLogs.innerHTML = '';
+    if (!currentUser) {
+      historyLogs.textContent = 'No user logged in.';
+      return;
+    }
+    const user = users[currentUser];
+    if (user.transactions.length === 0) {
+      historyLogs.innerHTML = '<p>No transactions yet.</p>';
+      return;
+    }
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+      <tr>
+        <th>Date & Time</th>
+        <th>Type</th>
+        <th>Amount (₹)</th>
+        <th>Details</th>
+      </tr>`;
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+
+    user.transactions.slice().reverse().forEach(tx => {
+      const tr = document.createElement('tr');
+      const dateStr = new Date(tx.date).toLocaleString();
+      tr.innerHTML = `
+        <td>${dateStr}</td>
+        <td>${tx.type}</td>
+        <td>${tx.amount.toFixed(2)}</td>
+        <td>${tx.to ? 'To: ' + tx.to : tx.from ? 'From: ' + tx.from : '-'}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    historyLogs.appendChild(table);
+  }
+
+  // Admin Panel
+  function updateAdminPanel() {
+    const accountsList = document.getElementById('admin-accounts-list');
+    accountsList.innerHTML = '';
+    if (Object.keys(users).length === 0) {
+      accountsList.textContent = 'No accounts created yet.';
+      return;
+    }
+
+    const table = document.createElement('table');
+    const thead = document.createElement('thead');
+    thead.innerHTML = `
+      <tr>
+        <th>Account Number</th>
+        <th>Name</th>
+        <th>DOB</th>
+        <th>Address</th>
+        <th>City</th>
+        <th>Balance (₹)</th>
+        <th>Loan (₹)</th>
+      </tr>`;
+    table.appendChild(thead);
+
+    const tbody = document.createElement('tbody');
+
+    for (const accNum in users) {
+      const user = users[accNum];
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${accNum}</td>
+        <td>${user.name}</td>
+        <td>${user.dob}</td>
+        <td>${user.address}</td>
+        <td>${user.city}</td>
+        <td>${user.balance.toFixed(2)}</td>
+        <td>${user.loan.toFixed(2)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+
+    table.appendChild(tbody);
+    accountsList.appendChild(table);
+  }
+
+  document.getElementById('admin-logout').addEventListener('click', () => {
+    showSection('login');
+  });
+
+  // Initialize showing login on load
+  showSection('login');
+</script>
+
+</body>
+</html>
