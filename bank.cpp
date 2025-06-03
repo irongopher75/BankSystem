@@ -323,7 +323,7 @@ public:
     do {
         cout << "\n===== Account Menu =====\n";
         cout << "1. Deposit Money\n";
-        cout << "2. Withdraw Money (Coming Soon)\n";
+        cout << "2. Withdraw Money \n";
         cout << "3. Issue Loan\n";
         cout << "4. Repay Loan\n";
         cout << "5. Check Balance\n";

@@ -101,6 +101,40 @@ int main() {
         return crow::response{res};
     });
 
+    // POST /withdraw { "username": "user1", "amount": 200.0 }
+CROW_ROUTE(app, "/withdraw").methods("POST"_method)([](const crow::request& req){
+    auto body = crow::json::load(req.body);
+    if (!body) return crow::response(400, "Invalid JSON");
+
+    std::string username = body["username"].s();
+    double amount = 0.0;
+    try {
+        amount = body["amount"].d();
+    } catch (...) {
+        return crow::response(400, "Invalid amount");
+    }
+
+    std::lock_guard<std::mutex> lock(balance_mutex);
+
+    if (users.find(username) == users.end())
+        return crow::response(404, "User not found");
+
+    if (amount <= 0)
+        return crow::response(400, "Amount must be positive");
+
+    if (balances[username] < amount)
+        return crow::response(400, "Insufficient balance");
+
+    balances[username] -= amount;
+
+    crow::json::wvalue res;
+    res["status"] = "success";
+    res["balance"] = balances[username];
+
+    return crow::response{res};
+});
+
+
     app.port(8080).multithreaded().run();
     return 0;
 }

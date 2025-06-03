@@ -323,6 +323,19 @@
     </form>
   </section>
 
+  <!-- Withdraw Modal -->
+<section id="withdraw-section" class="hidden">
+  <h2>Withdraw Money</h2>
+  <form id="withdraw-form" autocomplete="off">
+    <label for="withdraw-amount">Amount to Withdraw (₹)</label>
+    <input type="number" id="withdraw-amount" min="1" required />
+    <button type="submit">Withdraw</button>
+    <button type="button" id="withdraw-cancel">Cancel</button>
+    <p class="message success hidden" id="withdraw-success"></p>
+    <p class="message error hidden" id="withdraw-error"></p>
+  </form>
+</section>
+
   <!-- Transfer Money -->
   <section id="transfer-section" class="hidden">
     <h2>Transfer Money</h2>
@@ -389,6 +402,53 @@
     hideAllSections();
     sections[sectionName].classList.remove('hidden');
   }
+
+  // Enable the withdraw button now
+document.getElementById('btn-withdraw').disabled = false;
+document.getElementById('btn-withdraw').addEventListener('click', () => {
+  showSection('withdraw');
+  resetWithdrawForm();
+});
+
+function resetWithdrawForm() {
+  document.getElementById('withdraw-form').reset();
+  document.getElementById('withdraw-error').classList.add('hidden');
+  document.getElementById('withdraw-success').classList.add('hidden');
+}
+
+document.getElementById('withdraw-cancel').addEventListener('click', () => {
+  showSection('userDashboard');
+});
+
+document.getElementById('withdraw-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const amt = parseFloat(document.getElementById('withdraw-amount').value);
+  const withdrawError = document.getElementById('withdraw-error');
+  const withdrawSuccess = document.getElementById('withdraw-success');
+  withdrawError.classList.add('hidden');
+  withdrawSuccess.classList.add('hidden');
+
+  if (isNaN(amt) || amt <= 0) {
+    withdrawError.textContent = 'Enter a valid positive amount.';
+    withdrawError.classList.remove('hidden');
+    return;
+  }
+
+  const user = users[currentUser];
+  if (amt > user.balance) {
+    withdrawError.textContent = 'Insufficient balance.';
+    withdrawError.classList.remove('hidden');
+    return;
+  }
+
+  user.balance -= amt;
+  user.transactions.push({ type: 'Withdraw', amount: amt, date: new Date() });
+
+  withdrawSuccess.textContent = `₹${amt.toFixed(2)} withdrawn successfully.`;
+  withdrawSuccess.classList.remove('hidden');
+  updateDashboard();
+});
+
 
   // Navigation buttons
   document.getElementById('btn-show-login').addEventListener('click', () => {
@@ -475,30 +535,36 @@
   });
 
   // Login
-  const loginForm = document.getElementById('login-form');
-  loginForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const accNum = document.getElementById('login-account-number').value.trim();
-    const pwd = document.getElementById('login-password').value;
-    const loginError = document.getElementById('login-error');
-    loginError.classList.add('hidden');
+const loginForm = document.getElementById('login-form');
+loginForm.addEventListener('submit', async e => {
+  e.preventDefault();
 
-    if (!(accNum in users)) {
-      loginError.textContent = 'Account number not found.';
+  const accNum = document.getElementById('login-account-number').value.trim();
+  const pwd = document.getElementById('login-password').value;
+  const loginError = document.getElementById('login-error');
+  loginError.classList.add('hidden');
+
+  try {
+    const res = await fetch('http://localhost:8080/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: accNum, password: pwd })
+    });
+
+    if (res.status === 200) {
+      currentUser = accNum;
+      await fetchAndUpdateDashboard();
+      showSection('userDashboard');
+    } else {
+      const msg = await res.text();
+      loginError.textContent = msg;
       loginError.classList.remove('hidden');
-      return;
     }
-
-    if (users[accNum].passwordHash !== hashPassword(pwd)) {
-      loginError.textContent = 'Incorrect password.';
-      loginError.classList.remove('hidden');
-      return;
-    }
-
-    currentUser = accNum;
-    updateDashboard();
-    showSection('userDashboard');
-  });
+  } catch (err) {
+    loginError.textContent = 'Server error. Please try again.';
+    loginError.classList.remove('hidden');
+  }
+});
 
   // Admin Login
   const adminLoginForm = document.getElementById('admin-login-form');
@@ -522,16 +588,23 @@
   let currentUser = null;
 
   // Update dashboard info
-  function updateDashboard() {
-    if (!currentUser) return;
-    const user = users[currentUser];
-    document.getElementById('user-name-display').textContent = user.name;
+  async function fetchAndUpdateDashboard() {
+  if (!currentUser) return;
+  try {
+    const res = await fetch(`http://localhost:8080/balance/${currentUser}`);
+    if (!res.ok) throw new Error("Balance fetch failed");
+    const data = await res.json();
+
+    document.getElementById('user-name-display').textContent = currentUser;
     document.getElementById('user-account-number').textContent = currentUser;
-    document.getElementById('user-balance').textContent = user.balance.toFixed(2);
-    document.getElementById('user-loan').textContent = user.loan.toFixed(2);
-    const loanCap = user.balance * 0.5;
-    document.getElementById('user-loan-capacity').textContent = loanCap.toFixed(2);
+    document.getElementById('user-balance').textContent = data.balance.toFixed(2);
+    document.getElementById('user-loan').textContent = "N/A"; // not in backend
+    document.getElementById('user-loan-capacity').textContent = (data.balance * 0.5).toFixed(2);
+  } catch (err) {
+    console.error("Error updating dashboard:", err);
   }
+}
+
 
   // Logout button
   document.getElementById('btn-logout').addEventListener('click', () => {
@@ -645,52 +718,43 @@
   });
 
   const transferForm = document.getElementById('transfer-form');
-  transferForm.addEventListener('submit', e => {
-    e.preventDefault();
-    const recipient = document.getElementById('transfer-recipient').value.trim();
-    const amt = parseFloat(document.getElementById('transfer-amount').value);
-    const transferError = document.getElementById('transfer-error');
-    const transferSuccess = document.getElementById('transfer-success');
-    transferError.classList.add('hidden');
-    transferSuccess.classList.add('hidden');
+  transferForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const recipient = document.getElementById('transfer-recipient').value.trim();
+  const amt = parseFloat(document.getElementById('transfer-amount').value);
+  const transferError = document.getElementById('transfer-error');
+  const transferSuccess = document.getElementById('transfer-success');
+  transferError.classList.add('hidden');
+  transferSuccess.classList.add('hidden');
 
-    if (!(recipient in users)) {
-      transferError.textContent = 'Recipient account does not exist.';
+  if (!recipient || isNaN(amt) || amt <= 0) {
+    transferError.textContent = 'Invalid input.';
+    transferError.classList.remove('hidden');
+    return;
+  }
+
+  try {
+    const res = await fetch('http://localhost:8080/transfer', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: currentUser, to: recipient, amount: amt })
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      transferSuccess.textContent = `₹${amt.toFixed(2)} transferred to ${recipient}.`;
+      transferSuccess.classList.remove('hidden');
+      await fetchAndUpdateDashboard();
+      transferForm.reset();
+    } else {
+      transferError.textContent = data.message || 'Transfer failed';
       transferError.classList.remove('hidden');
-      return;
     }
-
-    if (recipient === currentUser) {
-      transferError.textContent = 'Cannot transfer to your own account.';
-      transferError.classList.remove('hidden');
-      return;
-    }
-
-    const sender = users[currentUser];
-    if (isNaN(amt) || amt <= 0) {
-      transferError.textContent = 'Enter a valid positive amount.';
-      transferError.classList.remove('hidden');
-      return;
-    }
-
-    if (amt > sender.balance) {
-      transferError.textContent = 'Insufficient balance.';
-      transferError.classList.remove('hidden');
-      return;
-    }
-
-    // Transfer
-    sender.balance -= amt;
-    sender.transactions.push({ type: 'Transfer Sent', amount: amt, date: new Date(), to: recipient });
-
-    users[recipient].balance += amt;
-    users[recipient].transactions.push({ type: 'Transfer Received', amount: amt, date: new Date(), from: currentUser });
-
-    transferSuccess.textContent = `₹${amt.toFixed(2)} transferred successfully to ${recipient}.`;
-    transferSuccess.classList.remove('hidden');
-    updateDashboard();
-    transferForm.reset();
-  });
+  } catch (err) {
+    transferError.textContent = 'Network/server error.';
+    transferError.classList.remove('hidden');
+  }
+});
 
   // Transaction & Loan History
   document.getElementById('btn-view-history').addEventListener('click', () => {
